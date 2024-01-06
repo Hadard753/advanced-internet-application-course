@@ -6,3 +6,9 @@ GET http://localhost:3000/
 ###
 
 GET http://localhost:3000/users/
+
+### Dogs breeds
+
+GET https://dog.ceo/api/breeds/list/all
+
+

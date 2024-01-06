@@ -1,9 +1,2 @@
-import express, { Router, Request, Response } from 'express';
-
-const router: Router = express.Router();
-
-router.get('/', (req: Request, res: Response) => {
-  res.send('User route is working!');
-});
-
-export default router;
+export { userRouter } from "./users";
+export { commentRouter } from "./comments";

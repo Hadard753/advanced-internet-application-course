@@ -1,24 +1,28 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import * as dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import * as core from "express-serve-static-core";
 
-import userRoutes from './routes';
+import { userRouter, commentRouter } from './routes';
+import { connectMongo } from './db';
 
 dotenv.config();
-const app = express();
-const port = process.env.PORT || 3000;
 
-// Connect to MongoDB
-console.log(`connecting mongo db`);
-mongoose.connect('mongodb://127.0.0.1:27017/test');
+const appPromise: Promise<core.Express> = new Promise((resolve, reject) => {
+    connectMongo().then(() => {
+        const app = express();
 
+        app.use(bodyParser.json());
+        app.use(bodyParser.urlencoded({ extended: true }));
+        
+        app.use('/users', userRouter);
+        app.use('/comments', commentRouter);
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, World! My name is Dayan');
+        resolve(app);
+    }).catch(error => {
+      console.error(`Error initializing the app: ${error}`)
+      reject(error);
+    });
 });
 
-app.use('/users', userRoutes);
-
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+export default appPromise;

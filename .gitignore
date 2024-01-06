@@ -39,3 +39,6 @@ npm-debug.log*
 # Tests
 coverage/
 __tests__/
+
+#db
+data

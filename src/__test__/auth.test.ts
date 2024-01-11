@@ -18,7 +18,8 @@ describe("GET /", () => {
     test("It should response User route is working!", async () => {
         const app = await appPromise;
         const response = await request(app).get("/users/");
+        
         expect(response.statusCode).toEqual(200);
-        expect(response.body).toEqual("User route is working!");
+        expect(response.body?.message).toEqual("User route is working!");
     })
 });

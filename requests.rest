@@ -34,4 +34,8 @@ Content-Type: application/application/json
 
 GET https://dog.ceo/api/breeds/list/all
 
+### Get comments
+
+GET http://localhost:3000/comments/
+Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTlmMDMyNzE4ODRmNDBiNTc5YjU3YzkiLCJpYXQiOjE3MDQ5MjIyOTQsImV4cCI6MTcwNDkyNTg5NH0._B-R-3NBJX9Nv9N3dc9Cg61GIG53Q9SVYa3yviJp9Zk
 

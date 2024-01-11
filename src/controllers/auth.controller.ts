@@ -6,11 +6,25 @@ import User, { UserDocument } from "../models/user.model";
 
 const saltRounds = 10;
 
-const sendError = (res: Response, code: number, message: string) => {
+const sendError = (res: Response, code: number, message: string): void => {
     res.status(code).send({
         status: `fail`,
         message
     })
+}
+
+const generateTokens = (user: UserDocument): { accessToken: string, refreshToken: string } => {
+    const accessToken = jwt.sign(
+        { __id: user._id }, 
+        process.env.ACCESS_TOKEN_SECRET || "", 
+        { expiresIn: process.env.JWT_TOKEN_EXPIRATION || '1h' }
+    );
+    const refreshToken = jwt.sign(
+        { __id: user._id }, 
+        process.env.REFRESH_TOKEN_SECRET || "",
+    );
+
+    return {accessToken, refreshToken};
 }
 
 
@@ -35,13 +49,14 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             return sendError(res, 401, 'Invalid password')
         }
 
-        const token = jwt.sign(
-            { userId: user._id }, 
-            process.env.JWT_SECRET || "", 
-            { expiresIn: process.env.JWT_TOKEN_EXPIRATION || '1h' }
-        );
+        const { accessToken, refreshToken } = generateTokens(user);
 
-        return res.status(200).json({ message: 'Login successful', token });
+        if (user.tokens == null) user.tokens = [refreshToken]
+        else user.tokens.push(refreshToken)
+
+        await user.save();
+
+        return res.status(200).json({ message: 'Login successful', accessToken, refreshToken });
     } catch (error) {
         // Handle any errors that occur during the login process
         console.error('Error during login:', error);
@@ -72,6 +87,67 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 }
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("logout");
-    sendError(res, 400, 'not implemented')
+    const authHeader = req.header('Authorization') || req.header('authorization')
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized - No token provided' });
+    }
+    
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || "", async (err: any, jwtUser: any) => {
+        if (err) {
+            return res.status(403).json({ message: 'Forbidden - Invalid token' });
+        }
+        try {
+            const user = await User.findById(jwtUser.__id);
+            if (!user) {
+                return res.status(403).json({ message: 'Forbidden - User not exist' });
+            }
+            if(!user.tokens?.includes(token)) {
+                user.tokens = []; // deactivate all refresh tokens
+                await user.save();
+                return res.status(403).json({ message: 'Forbidden - Invalid request' });
+            }
+            
+            user.tokens.splice(user.tokens.indexOf(token), 1);
+            await user.save();
+            return res.status(200).json({ message: 'Logged out' });   
+        } catch (error) {
+            return sendError(res, 500, "Internal server error");
+        }
+    });
+}
+
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.header('Authorization') || req.header('authorization')
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized - No token provided' });
+    }
+    
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || "", async (err: any, jwtUser: any) => {
+        if (err) {
+            return res.status(403).json({ message: 'Forbidden - Invalid token' });
+        }
+        try {
+            const user = await User.findById(jwtUser.__id);
+            if (!user) {
+                return res.status(403).json({ message: 'Forbidden - User not exist' });
+            }
+            if(!user.tokens?.includes(token)) {
+                user.tokens = []; // deactivate all refresh tokens
+                await user.save();
+                return res.status(403).json({ message: 'Forbidden - Invalid request' });
+            }
+    
+            const { accessToken, refreshToken } = generateTokens(user);
+            
+            user.tokens[user.tokens.indexOf(refreshToken)] = refreshToken;
+            await user.save();
+            return res.status(200).json({ message: 'Token refreshed', accessToken, refreshToken });   
+        } catch (error) {
+            return sendError(res, 500, "Internal server error");
+        }
+    });
 }

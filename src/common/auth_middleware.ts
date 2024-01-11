@@ -13,12 +13,12 @@ const authenticateJWT = async (req: AppRequest, res: Response, next: NextFunctio
         return res.status(401).json({ message: 'Unauthorized - No token provided' });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || "", async (err: any, jwtUser: any) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || "", async (err: any, jwtUser: any) => {
         if (err) {
             return res.status(403).json({ message: 'Forbidden - Invalid token' });
         }
 
-        const user = await User.findById(jwtUser.userId);
+        const user = await User.findById(jwtUser.__id);
         if (!user) {
             return res.status(403).json({ message: 'Forbidden - User not exist' });
         }

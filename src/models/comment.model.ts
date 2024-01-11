@@ -7,7 +7,7 @@ export interface CommentDocument extends Document {
   breedType: string;
   content: string;
   img?: ImageDocument['_id'];
-  author: Types.ObjectId; // Represents a UserId
+  author: Types.ObjectId; 
 }
 
 const commentSchema: Schema<CommentDocument> = new Schema({

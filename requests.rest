@@ -4,7 +4,7 @@ POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-    "username": "something@a.com",
+    "email": "something@a.com",
     "password": "test"
 }
 
@@ -15,7 +15,7 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username": "a@a.com",
+    "email": "a@a.com",
     "password": "test"
 }
 
@@ -25,7 +25,7 @@ POST http://localhost:3000/auth/logout
 Content-Type: application/application/json
 
 {
-    "username": "a@a.com",
+    "email": "a@a.com",
     "password": "test"
 }
 

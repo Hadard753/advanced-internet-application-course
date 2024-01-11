@@ -31,13 +31,13 @@ const generateTokens = (user: UserDocument): { accessToken: string, refreshToken
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
         console.log(req.body);
-        const { username, password } = req.body;
+        const { email, password } = req.body;
 
-        if (!username || !password) {
+        if (!email || !password) {
             return sendError(res, 400, 'Invalid credentials');
         }
 
-        const user: UserDocument | null = await User.findOne({ username });
+        const user: UserDocument | null = await User.findOne({ email });
 
         if (!user) {
             return res.status(401).json({ message: 'User not found' });
@@ -65,11 +65,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password) sendError(res, 402, 'invalid username or password');
+    if (!email || !password) sendError(res, 402, 'invalid email or password');
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
         return sendError(res, 400, 'User already registered');
     }
@@ -77,7 +77,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser: UserDocument = new User({
-        username,
+        email,
         password: hashedPassword,
     });
 

@@ -3,7 +3,7 @@
 import request from 'supertest';
 import appPromise from '../app';
 import mongoose from 'mongoose';
-
+import mongoTestServer from '../testdb';
 
 beforeAll(done => {
     done();
@@ -11,15 +11,16 @@ beforeAll(done => {
 
 afterAll(done => {
     mongoose.connection.close();
+    mongoTestServer.stop();
     done();
 })
 
-describe("GET /", () => {
-    test("It should response User route is working!", async () => {
+describe("Restrict access without Auth", () => {
+    test("It should response wth Unauthorized error", async () => {
         const app = await appPromise;
-        const response = await request(app).get("/users/");
-        
-        expect(response.statusCode).toEqual(200);
-        expect(response.body?.message).toEqual("User route is working!");
+        const response = await request(app).get("/comments/");
+
+        expect(response.statusCode).toEqual(401);
+        expect(response.body?.message).toEqual('Unauthorized - No token provided');
     })
 });
